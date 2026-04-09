@@ -1,0 +1,13 @@
+grupo_edad,edad_min,edad_max,sexo,energia_kcal_dia,proteina_g_dia,grasa_g_dia,carbohidratos_g_dia,fibra_g_dia,calcio_mg_dia,hierro_mg_dia,zinc_mg_dia,vitamina_a_mcg_dia,vitamina_c_mg_dia,sodio_mg_dia,azucar_max_pct,grasa_sat_max_pct,pct_desayuno,pct_comida,fuente
+preescolar_3_4,3,4,ambos,1300,16,43,195,14,500,7,5,300,15,1500,10,10,25,33,IDR_Mexico_Bourges_2008_DRI_IOM
+preescolar_5_6,5,6,ambos,1500,19,50,225,17,600,7,5,400,25,1500,10,10,25,33,IDR_Mexico_Bourges_2008_DRI_IOM
+escolar_6_8,6,8,ambos,1600,20,53,240,19,600,10,5,400,25,1900,10,10,25,33,IDR_Mexico_Bourges_2008_DRI_IOM
+escolar_9_10,9,10,ambos,1800,28,60,270,22,800,10,8,600,45,2200,10,10,25,33,IDR_Mexico_Bourges_2008_DRI_IOM
+escolar_11_12_m,11,12,masculino,2200,36,73,330,26,1300,8,8,600,45,2300,10,10,25,33,IDR_Mexico_Bourges_2008_DRI_IOM
+escolar_11_12_f,11,12,femenino,2000,34,67,300,26,1300,15,8,600,45,2300,10,10,25,33,IDR_Mexico_Bourges_2008_DRI_IOM
+adolescente_13_15_m,13,15,masculino,2600,44,87,390,31,1300,11,11,900,75,2300,10,10,25,33,IDR_Mexico_Bourges_2008_DRI_IOM
+adolescente_13_15_f,13,15,femenino,2200,38,73,330,26,1300,15,9,700,65,2300,10,10,25,33,IDR_Mexico_Bourges_2008_DRI_IOM
+adulto_mayor_60_m,60,99,masculino,2000,56,67,300,30,1200,10,11,900,90,2300,10,10,25,33,IDR_Mexico_Bourges_2008_DRI_IOM
+adulto_mayor_60_f,60,99,femenino,1700,46,57,255,21,1200,10,8,700,75,2300,10,10,25,33,IDR_Mexico_Bourges_2008_DRI_IOM
+embarazada,18,45,femenino,2300,60,77,345,28,1000,27,11,770,85,2300,10,10,25,33,IDR_Mexico_Bourges_2008_DRI_IOM
+lactancia,18,45,femenino,2500,65,83,375,29,1000,9,12,1300,120,2300,10,10,25,33,IDR_Mexico_Bourges_2008_DRI_IOM
