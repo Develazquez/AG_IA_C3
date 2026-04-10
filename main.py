@@ -72,7 +72,7 @@ if __name__ == "__main__":
             print("    3) 6-9 años   (escolar primaria baja)")
             print("    4) 10-12 años (escolar primaria alta)")
             print("    5) 13-15 años (adolescente)")
-            print("    6) Personalizado")
+            print("    6) Personalizado (edad maxima: 18 años)")
             opcion_edad = input("\n  Seleccione una opción [1-6] (default: 3): ").strip()
             if opcion_edad == "" or opcion_edad == "3":
                 EDAD_RANGO = (6, 9)
