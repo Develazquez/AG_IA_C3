@@ -58,16 +58,113 @@ TECNICAS_PREPARACION = {
 LISTA_TECNICAS = list(TECNICAS_PREPARACION.keys())
 
 
-GRUPOS_SUSTITUCION = {
-    "proteina_animal": ["chicken", "beef", "tuna", "egg"],
-    "leguminosa":      ["beans, black", "lentil"],
-    "cereal":          ["rice", "oat", "tortilla"],
-    "verdura_a":       ["broccoli", "spinach", "squash"],
-    "verdura_b":       ["tomato", "carrot"],
-    "fruta":           ["banana", "apple"],
-    "lacteo":          ["milk", "cheese"],
-    "tuberculo":       ["potato"],
+                                                    
+MAX_PLATILLOS = 70
+
+                                                                                     
+                                                                           
+                                                                          
+PALABRAS_EXCLUIDAS = {
+                                                                               
+    "flour", "pastry", "cookie", "cookies", "cake", "pie",
+    "muffin", "donut", "brownie", "waffle", "cracker", "biscuit",
+                                                                               
+    "harina", "pastel", "galleta", "dona", "panque", "barquillo",
+                                                                               
+    "breaded", "par frie", "par-frie", "battered",
+                                                                               
+    "empanizado", "capeado", "rebozado",
+                                                                               
+    "paste", "powder", "powdered", "dry mix", "instant",
+    "freeze-dried", "dehydrated", "unprepared, dry",
+                                                                               
+    "polvo", "deshidratado", "instantaneo", "instantáneo", "reconstituido",
+                                                                               
+    "ring", "rings", "chip", "chips", "snack", "pretzel",
+                                                                               
+    "frituras", "papas fritas",
+                                                                               
+    "sauce", "dressing", "ketchup", "mustard", "mayonnaise",
+    "seasoning", "spice", "extract", "syrup", "condiment",
+                                                                               
+    "salsa", "aderezo", "catsup", "mostaza", "mayonesa",
+    "sazonador", "extracto", "jarabe", "condimento",
+                                                                                
+    "baby", "infant", "formula",
+                                                                                
+    "papilla", "colada", "colado", "sopa con",
+                                                                               
+    "oil", "fat", "lard", "shortening", "margarine", "butter",
+                                                                               
+    "aceite", "manteca", "mantequilla", "margarina",
+                                                                               
+    "alcohol", "beer", "wine", "spirit", "liquor", "drink", "beverage", "juice",
+                                                                               
+    "bebida", "jugo", "nectar", "néctar", "cerveza", "vino",
+    "aguardiente", "tepache", "pulque",
+                                                                               
+    "candy", "sugar", "pudding", "dessert", "ice cream", "gelatin", "jell",
+                                                                               
+    "dulce", "azucar", "azúcar", "postre", "helado", "gelatina",
+    "paleta", "caramelo", "natilla",
+                                                                               
+    "overripe", "imitation", "canned", "restaurant", "fast food",
+                                                                               
+    "enlatado", "restaurante", "comida rapida", "comida rápida", "precocido",
+                                                                                
+    "otin",
 }
+
+                                                                             
+                                                                  
+ 
+                                            
+                                                                          
+                                                                  
+                                                           
+                                                                        
+                                                                            
+                                               
+                                                                              
+                                                 
+UMBRALES_CLASIFICACION = [
+                                                                                    
+    ("lacteo",          {"calcio_mg": (100, None), "proteina_g": (2, 25),  "kcal_100g": (20, 500)}),
+                                                                                        
+                                                                
+                                                                                      
+                                                                                         
+    ("proteina_animal", {"proteina_g": (10, None), "kcal_100g": (50, 550), "calcio_mg": (None, 80)}),
+                                                                            
+    ("leguminosa",      {"proteina_g": (5, 18),   "kcal_100g": (80, 400), "hierro_mg": (0.8, None)}),
+                                         
+    ("cereal",          {"kcal_100g": (170, None), "proteina_g": (2, 18)}),
+                                                                                
+    ("verdura_a",       {"kcal_100g": (None, 70),  "vitA_ug": (15, None)}),
+                                                                                
+    ("fruta",           {"kcal_100g": (20,  110),  "proteina_g": (None, 4), "vitC_mg": (5, None)}),
+                                                      
+    ("tuberculo",       {"kcal_100g": (65,  250),  "proteina_g": (None, 5)}),
+                                                     
+    ("verdura_b",       {"kcal_100g": (None, 80),  "proteina_g": (None, 5)}),
+]
+
+                                                         
+                                                                              
+PATRONES_RECETA = [
+    ("Proteína con Cereal",     ["proteina_animal", "cereal"],     [100, 100], ["guisado", "hervido", "asado"]),
+    ("Proteína con Verdura",    ["proteina_animal", "verdura_a"],  [100,  80], ["asado", "al_vapor", "guisado"]),
+    ("Proteína con Tubérculo",  ["proteina_animal", "tuberculo"],  [ 80, 150], ["guisado", "hervido"]),
+    ("Leguminosa de olla",      ["leguminosa"],                    [120],      ["hervido", "guisado"]),
+    ("Leguminosa con Verdura",  ["leguminosa", "verdura_b"],       [100,  50], ["hervido", "guisado"]),
+    ("Cereal con Lácteo",       ["cereal", "lacteo"],              [ 80, 200], ["hervido", "crudo"]),
+    ("Cereal con Verdura",      ["cereal", "verdura_b"],           [100,  60], ["guisado", "frito"]),
+    ("Verdura mixta",           ["verdura_a", "verdura_b"],        [ 80,  50], ["hervido", "al_vapor", "crudo"]),
+    ("Fruta sola",              ["fruta"],                         [150],      ["crudo"]),
+    ("Lácteo con Cereal",       ["lacteo", "cereal"],              [200,  60], ["crudo", "hervido"]),
+    ("Tubérculo con Lácteo",    ["tuberculo", "lacteo"],           [150,  30], ["hervido"]),
+    ("Proteína con Leguminosa", ["proteina_animal", "leguminosa"], [ 80,  80], ["guisado", "hervido"]),
+]
 
 PALETTE = {
     "bg":      "#0D1117", "panel":   "#161B22",

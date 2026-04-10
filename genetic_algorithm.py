@@ -89,7 +89,7 @@ class MenuGeneticAlgorithm:
         alternativas = row_plat["alternativas"]
         costo = 0.0
         for i, (id_al_orig, gramos_base) in enumerate(ingredientes):
-            # Aplicar sustitución si se indica
+                                              
             if sustituciones is not None and i < len(sustituciones):
                 alts = alternativas[i]
                 id_al = alts[sustituciones[i] % len(alts)]
@@ -233,35 +233,95 @@ class MenuGeneticAlgorithm:
                     err += 2.0 * (consumo - rmax) / max(rmax, 1.0)
                 errores.append(err)
         raw = float(np.mean(errores))
-        return 2.0 / (1.0 + np.exp(-raw)) - 1.0  # sigmoid [0, 1)
+        return 2.0 / (1.0 + np.exp(-raw)) - 1.0                  
 
     def _penalizacion_variedad(self, platillos_usados: List[int]) -> float:
         pen = 0.0
         conteo: Dict[int, int] = {}
         for pid in platillos_usados:
             conteo[pid] = conteo.get(pid, 0) + 1
-        # Repeticiones excesivas
+                                
         for pid, cnt in conteo.items():
             if cnt > 2:
                 pen += (cnt - 2)
-        # Repeticiones entre días consecutivos
+                                              
         for dia in range(6):
             s1 = set(platillos_usados[dia * 3:dia * 3 + 3])
             s2 = set(platillos_usados[(dia + 1) * 3:(dia + 1) * 3 + 3])
             pen += len(s1 & s2)
-        # Normalizar al máximo teórico 
+                                       
         return min(pen / 39.0, 1.0)
+
+    def _penalizacion_culinaria_y_ultraprocesados(self, individuo: Individuo) -> float:
+        penalizacion = 0.0
+        
+                                                               
+        listos_para_comer = [
+            "queso", "cheese", "pan ", "bread", "jamon", "ham", "salchicha", "sausage", 
+            "yogurt", "leche", "milk", "totopo", "tostada", "cracker", "cereal"
+        ]
+        crudos_obligatorios = [
+            "raw chicken", "raw beef", "raw pork", "raw meat", "raw fish", "pollo crudo", 
+            "carne cruda", "pescado crudo", "cerdo crudo", "raw egg", "huevo crudo", 
+            "flour", "harina", "frijol crudo", "raw bean", "lenteja cruda", "raw lentil", "raw turkey"
+        ]
+        
+        for pid, factor, sust, tecnica in individuo:
+            row_plat = self.platillos.loc[pid]
+            ingredientes = row_plat["ingredientes"]
+            alternativas = row_plat["alternativas"]
+            
+            for i, (id_orig, _) in enumerate(ingredientes):
+                if i < len(sust):
+                    alts = alternativas[i]
+                    id_real = alts[sust[i] % len(alts)]
+                else:
+                    id_real = id_orig
+                    
+                if id_real not in self.alimentos.index:
+                    continue
+                    
+                row_al = self.alimentos.loc[id_real]
+                nombre_lower = str(row_al["nombre"]).lower()
+                
+                                                                               
+                                                     
+                if tecnica in ["hervido", "asado", "frito", "guisado", "al_vapor"]:
+                    if any(kw in nombre_lower for kw in listos_para_comer):
+                        penalizacion += 10.0                                    
+                        
+                                                                                         
+                if tecnica == "crudo":
+                    if any(kw in nombre_lower for kw in crudos_obligatorios):
+                        penalizacion += 15.0                    
+                        
+                                                                                          
+                                                  
+                kcal = row_al.get("kcal_100g", 0) or 0
+                prot = row_al.get("proteina_g", 0) or 0
+                hrro = row_al.get("hierro_mg", 0) or 0
+                calc = row_al.get("calcio_mg", 0) or 0
+                vitA = row_al.get("vitA_ug", 0) or 0
+                vitC = row_al.get("vitC_mg", 0) or 0
+                
+                                                                                        
+                                                                                            
+                                                                          
+                if kcal > 400.0 and prot < 5.0 and hrro < 1.0 and calc < 40.0 and vitA < 50.0 and vitC < 5.0:
+                    penalizacion += 8.0 
+                    
+        return penalizacion
 
     def fitness(self, individuo: Individuo) -> Tuple[float, Dict]:
         dec = self.decodificar(individuo)
 
-        # f1: error nutricional normalizado [0, 1
+                                                 
         f_enom = self._error_nutricional(dec["nutricion_diaria"])
 
-        # f2: costo normalizado [0, 1] 
+                                       
         f_costo = min(dec["costo_total"] / max(self._max_costo_posible, 1.0), 1.0)
 
-        # f3: variedad compuesta [0, 1] 
+                                        
         variedad_raw = (
             0.6 * dec["variedad_platillos"]
             + 0.25 * dec["variedad_ingredientes"]
@@ -271,21 +331,23 @@ class MenuGeneticAlgorithm:
         f_variedad = 1.0 - variedad_raw + 0.3 * pen_var
         f_variedad = min(max(f_variedad, 0.0), 1.0)
 
-        # f4: densidad micronutricional [0, 1] 
+                                               
         f_dmicro = 1.0 - min(dec["densidad_micro"], 1.0)
 
-        # penalización presupuestaria (barrera suave) 
+                                                      
         pen_pres = 0.0
         if dec["costo_total"] > self.presupuesto_max:
             exceso = (dec["costo_total"] - self.presupuesto_max) / self.presupuesto_max
-            pen_pres = min(exceso * 3.0, 1.0)  # Acotada en [0, 1]
+            pen_pres = min(exceso * 3.0, 1.0)                     
 
-        # fitness total: suma ponderada + penalización 
+                                                       
+        pen_culinaria = self._penalizacion_culinaria_y_ultraprocesados(individuo)
         f = (self.w1 * f_enom
              + self.w2 * f_costo
              + self.w3 * f_variedad
              + self.w4 * f_dmicro
-             + pen_pres)
+             + pen_pres
+             + pen_culinaria)
 
         metricas = {
             "f_enom":              f_enom,
@@ -317,7 +379,7 @@ class MenuGeneticAlgorithm:
     def cruzar(self, p1: Individuo, p2: Individuo) -> Tuple[Individuo, Individuo]:
         if rng.random() > self.prob_cruce:
             return deepcopy(p1), deepcopy(p2)
-        # Cruce de dos puntos para preservar bloques diarios
+                                                            
         pt1 = rng.randint(0, 20)
         pt2 = rng.randint(pt1 + 1, 21)
         h1 = p1[:pt1] + p2[pt1:pt2] + p1[pt2:]
@@ -331,15 +393,15 @@ class MenuGeneticAlgorithm:
                 pid, factor, sust, tecnica = nuevo[i]
                 r = rng.random()
                 if r < 0.30:
-                    # Mutar platillo completo
+                                             
                     nuevo[i] = self._rand_gen()
                 elif r < 0.50:
-                    # Mutar solo factor de porción
+                                                  
                     delta = rng.uniform(-0.3, 0.3)
                     nuevo[i] = (pid, round(max(0.5, min(2.0, factor + delta)), 2),
                                 sust, tecnica)
                 elif r < 0.70:
-                    # Mutar un ingrediente (I_i)
+                                                
                     row_plat = self.platillos.loc[pid]
                     n_ings = len(row_plat["ingredientes"])
                     if n_ings > 0:
@@ -349,7 +411,7 @@ class MenuGeneticAlgorithm:
                         sust_list[ing_idx] = rng.randint(0, max(0, n_alts - 1))
                         nuevo[i] = (pid, factor, tuple(sust_list), tecnica)
                 else:
-                    # Mutar técnica de preparación (M_i)
+                                                        
                     tecnicas_perm = self.platillos.loc[pid, "tecnicas_permitidas"]
                     nuevo[i] = (pid, factor, sust, rng.choice(tecnicas_perm))
         return nuevo
@@ -370,7 +432,7 @@ class MenuGeneticAlgorithm:
                     if not candidatos:
                         candidatos = self.ids_platillos
                     new_pid = rng.choice(candidatos)
-                    # Generar gen válido para el nuevo platillo
+                                                               
                     row_plat = self.platillos.loc[new_pid]
                     n_ings = len(row_plat["ingredientes"])
                     sust = tuple(
@@ -396,7 +458,7 @@ class MenuGeneticAlgorithm:
             self.top3[-1] = entry
             self.top3.sort(key=lambda x: x[0])
 
-    #  bucle evolutivo 
+                       
 
     def ejecutar(self) -> Tuple[Individuo, Dict, Dict]:
         poblacion = [self.crear_individuo() for _ in range(self.pop_size)]
@@ -421,7 +483,7 @@ class MenuGeneticAlgorithm:
             fitnesses    = [e[0] for e in evaluaciones]
             metricas_pop = [e[1] for e in evaluaciones]
 
-            # Diversidad poblacional 
+                                     
             divs = [m["variedad_platillos"] for m in metricas_pop]
             diversidad = float(np.mean(divs))
 
@@ -431,7 +493,7 @@ class MenuGeneticAlgorithm:
                 mejor_individuo = deepcopy(poblacion[idx_mejor])
                 mejor_metricas  = metricas_pop[idx_mejor]
 
-            # sctualizar top 3
+                              
             for i in range(len(poblacion)):
                 self._actualizar_top3(fitnesses[i], poblacion[i], metricas_pop[i])
 
@@ -467,7 +529,7 @@ class MenuGeneticAlgorithm:
             poblacion = nueva_pob
 
         print(f"{'─' * 65}")
-        print(f"\n✓ Evolución completada. Mejor fitness: {mejor_fitness:.4f}")
+        print(f"\n Evolución completada. Mejor fitness: {mejor_fitness:.4f}")
         print(f"  Top 3 fitness: {[round(t[0], 4) for t in self.top3]}")
 
         return mejor_individuo, mejor_metricas, historial

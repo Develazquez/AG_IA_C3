@@ -1,149 +1,184 @@
-"""
-MenuGen-DIF v2: Construcción del catálogo de platillos
-"""
-
+import numpy as np
 import pandas as pd
-from typing import Optional, Set
+from typing import Dict, List, Optional, Set, Tuple
 
-from constants import GRUPOS_SUSTITUCION
+from constants import UMBRALES_CLASIFICACION, PATRONES_RECETA, MAX_PLATILLOS, PALABRAS_EXCLUIDAS
 
 
-def construir_platillos(df_alimentos: pd.DataFrame,
-                        ingredientes_disponibles: Optional[Set[str]] = None
-                        ) -> pd.DataFrame:
-    """
-    Construye catálogo de platillos típicos de comedores DIF Chiapas.
-    Cada ingrediente lleva su grupo de sustitución para la variable I_i.
-    ingredientes_disponibles: set de keywords permitidos (None = todos).
-    """
-    def buscar_id(keyword: str) -> Optional[int]:
-        mask = df_alimentos["nombre"].str.lower().str.contains(
-            keyword.lower(), na=False)
-        hits = df_alimentos[mask]
-        if len(hits) == 0:
-            return None
-        # Preferir el match más corto (más específico)
-        hits = hits.copy()
-        hits["_len"] = hits["nombre"].str.len()
-        return int(hits.sort_values("_len").index[0])
+def _es_ingrediente_valido(nombre: str) -> bool:
 
-    def disponible(keyword: str) -> bool:
-        if ingredientes_disponibles is None:
-            return True
-        return keyword.lower() in {k.lower() for k in ingredientes_disponibles}
+    nombre_lower = str(nombre).lower()
+    return not any(palabra in nombre_lower for palabra in PALABRAS_EXCLUIDAS)
 
-    def grupo_de(keyword: str) -> str:
-        for grupo, kws in GRUPOS_SUSTITUCION.items():
-            if keyword.lower() in [k.lower() for k in kws]:
-                return grupo
-        return "otro"
 
-    # Recetas: (nombre, [(keyword, gramos, grupo_sustitucion)], tecnicas_permitidas)
-    recetas_raw = [
-        ("Arroz con pollo",
-         [("chicken", 80), ("rice", 100), ("tomato", 30)],
-         ["hervido", "guisado"]),
-        ("Frijoles de olla",
-         [("beans, black", 120), ("tomato", 20)],
-         ["hervido", "guisado"]),
-        ("Huevos revueltos",
-         [("egg", 100), ("tomato", 30)],
-         ["frito", "guisado"]),
-        ("Avena con leche",
-         [("oat", 60), ("milk", 200)],
-         ["hervido"]),
-        ("Sopa de lentejas",
-         [("lentil", 100), ("tomato", 30)],
-         ["hervido", "guisado"]),
-        ("Pollo asado con brócoli",
-         [("chicken", 100), ("broccoli", 80)],
-         ["asado", "al_vapor"]),
-        ("Tacos de atún",
-         [("tuna", 80), ("tortilla", 40)],
-         ["guisado"]),
-        ("Puré de papa",
-         [("potato", 150), ("milk", 30)],
-         ["hervido"]),
-        ("Carne con calabaza",
-         [("beef", 100), ("squash", 80)],
-         ["guisado", "hervido"]),
-        ("Quesadillas de queso",
-         [("cheese", 50), ("tortilla", 60)],
-         ["asado", "frito"]),
-        ("Fruta mixta",
-         [("banana", 80), ("apple", 80)],
-         ["crudo"]),
-        ("Sopa de verduras",
-         [("carrot", 80), ("tomato", 50)],
-         ["hervido"]),
-        ("Ensalada de espinaca",
-         [("spinach", 80), ("tomato", 30)],
-         ["crudo", "al_vapor"]),
-        ("Lentejas guisadas",
-         [("lentil", 120), ("carrot", 40)],
-         ["guisado", "hervido"]),
-        ("Caldo de res",
-         [("beef", 80), ("carrot", 50)],
-         ["hervido"]),
-        ("Arroz a la mexicana",
-         [("rice", 100), ("tomato", 50)],
-         ["guisado", "frito"]),
-        ("Frijoles negros",
-         [("beans, black", 120)],
-         ["hervido", "guisado"]),
-        ("Tortilla con frijol",
-         [("tortilla", 60), ("beans, black", 80)],
-         ["asado", "guisado"]),
-        ("Pollo en salsa",
-         [("chicken", 100), ("tomato", 60)],
-         ["guisado", "hervido"]),
-        ("Ensalada de zanahoria",
-         [("carrot", 100), ("apple", 50)],
-         ["crudo"]),
+
+
+def _cumple_umbral(valor, minimo, maximo) -> bool:
+    try:
+        v = float(valor)
+    except (TypeError, ValueError):
+        return False
+    if np.isnan(v):
+        return False
+    if minimo is not None and v < minimo:
+        return False
+    if maximo is not None and v > maximo:
+        return False
+    return True
+
+
+def clasificar_alimentos(df: pd.DataFrame) -> Dict[str, List[int]]:
+
+    grupos: Dict[str, List[int]] = {cat: [] for cat, _ in UMBRALES_CLASIFICACION}
+
+    for idx, row in df.iterrows():
+        for categoria, condiciones in UMBRALES_CLASIFICACION:
+            if all(
+                _cumple_umbral(row.get(col, np.nan), vmin, vmax)
+                for col, (vmin, vmax) in condiciones.items()
+            ):
+                grupos[categoria].append(int(idx))
+                break  
+    return grupos
+
+
+                                                                                
+                                                                     
+                                                                                
+
+def _score_completitud(row: pd.Series) -> float:
+
+    cols = ["kcal_100g", "proteina_g", "hierro_mg", "calcio_mg", "vitA_ug", "vitC_mg"]
+    presentes = sum(1 for c in cols if pd.notna(row.get(c)) and (row.get(c) or 0) > 0)
+
+    prot  = float(row.get("proteina_g", 0) or 0)
+    kcal  = float(row.get("kcal_100g",  0) or 0)
+    micro = (
+        min(float(row.get("hierro_mg", 0) or 0), 20)
+        + min(float(row.get("calcio_mg", 0) or 0) / 100, 15)
+        + min(float(row.get("vitA_ug",  0) or 0) / 100, 10)
+        + min(float(row.get("vitC_mg",  0) or 0) / 10,  10)
+    )
+    return presentes * 8 + min(prot, 30) + min(kcal / 50, 8) + micro
+
+
+def _seleccionar_top(ids: List[int], df: pd.DataFrame, n: int) -> List[int]:
+    ids_validos = [i for i in ids if i in df.index]
+    if not ids_validos:
+        return []
+    scored = sorted(ids_validos,
+                    key=lambda i: _score_completitud(df.loc[i]),
+                    reverse=True)
+    return scored[:n]
+
+
+                                                                                
+                                           
+                                                                                
+
+def construir_platillos(
+    df_alimentos: pd.DataFrame,
+    ingredientes_disponibles: Optional[Set[str]] = None,
+) -> pd.DataFrame:
+
+
+                                                                                
+    if ingredientes_disponibles is not None:
+        kws_lower = {k.lower() for k in ingredientes_disponibles}
+        mask = df_alimentos["nombre"].str.lower().apply(
+            lambda n: any(kw in n for kw in kws_lower)
+        )
+        df_work = df_alimentos[mask].copy()
+    else:
+        df_work = df_alimentos.copy()
+
+                                                                                 
+    mascara_validos = df_work["nombre"].apply(_es_ingrediente_valido)
+    n_antes = len(df_work)
+    df_work = df_work[mascara_validos].copy()
+    n_excluidos = n_antes - len(df_work)
+    if n_excluidos > 0:
+        print(f"  [platillos] {n_excluidos} alimentos excluidos por lista de control.")
+
+    if df_work.empty:
+        return pd.DataFrame()
+
+                                                                                
+    grupos = clasificar_alimentos(df_work)
+
+                                                                                
+    patrones_activos = [
+        (nombre, cats, gramos, tecnicas)
+        for nombre, cats, gramos, tecnicas in PATRONES_RECETA
+        if all(len(grupos.get(c, [])) > 0 for c in cats)
     ]
 
-    filas = []
-    for pid, (nombre, ingredientes, tecnicas) in enumerate(recetas_raw):
-        ings_resueltos = []
-        porcion = 0
-        for keyword, gramos in ingredientes:
-            if not disponible(keyword):
-                continue
-            idx = buscar_id(keyword)
-            if idx is not None:
-                ings_resueltos.append({
-                    "id_alimento": idx,
-                    "gramos_base": gramos,
-                    "keyword":     keyword,
-                    "grupo_sust":  grupo_de(keyword),
-                })
-                porcion += gramos
+    if not patrones_activos:
+        return pd.DataFrame()
 
-        if not ings_resueltos:
-            continue
+                                                                                
+    plats_por_patron = max(2, MAX_PLATILLOS // len(patrones_activos))
 
-        # Construir lista de IDs alternativos por cada ingrediente
-        alternativas = []
-        for ing in ings_resueltos:
-            grupo = ing["grupo_sust"]
-            alts = []
-            for kw in GRUPOS_SUSTITUCION.get(grupo, []):
-                if not disponible(kw):
-                    continue
-                alt_id = buscar_id(kw)
-                if alt_id is not None:
-                    alts.append(alt_id)
-            if not alts:
-                alts = [ing["id_alimento"]]
-            alternativas.append(alts)
+    filas: List[dict] = []
+    pid = 0
 
-        filas.append({
-            "id_platillo":       pid,
-            "nombre":            nombre,
-            "ingredientes":      [(d["id_alimento"], d["gramos_base"]) for d in ings_resueltos],
-            "alternativas":      alternativas,  # lista de listas de IDs sustitutos
-            "tecnicas_permitidas": tecnicas,
-            "porcion_base_g":    porcion,
-        })
+    for nombre_patron, categorias, gramos_lista, tecnicas in patrones_activos:
+        if len(filas) >= MAX_PLATILLOS:
+            break
+
+        cat_prim = categorias[0]
+
+                                                                          
+        representantes = _seleccionar_top(grupos[cat_prim], df_work, plats_por_patron)
+
+                                                                         
+                                                                           
+        pool_alt: List[List[int]] = []
+        for cat in categorias:
+            pool = _seleccionar_top(grupos[cat], df_work, 30)
+            pool_alt.append(pool)
+
+                                                                                
+        secundarios: List[Tuple[int, int, int]] = []                                     
+        for i, cat_sec in enumerate(categorias[1:], start=1):
+            top1 = _seleccionar_top(grupos[cat_sec], df_work, 1)
+            gramos_sec = gramos_lista[i] if i < len(gramos_lista) else 80
+            if top1:
+                secundarios.append((top1[0], gramos_sec, i))
+
+                                                                            
+        for id_prim in representantes:
+            if len(filas) >= MAX_PLATILLOS:
+                break
+
+            ingredientes: List[Tuple[int, int]] = [(id_prim, gramos_lista[0])]
+            alternativas: List[List[int]]        = [pool_alt[0]]                                 
+
+            for id_sec, g_sec, cat_i in secundarios:
+                ingredientes.append((id_sec, g_sec))
+                alternativas.append(pool_alt[cat_i])
+
+                                                                                        
+            for i, (id_ing, _) in enumerate(ingredientes):
+                if not alternativas[i]:
+                    alternativas[i] = [id_ing]
+
+                                                                         
+            nombre_raw   = str(df_work.loc[id_prim, "nombre"])
+            nombre_corto = nombre_raw[:30] if len(nombre_raw) > 30 else nombre_raw
+            nombre_plat  = f"{nombre_patron}: {nombre_corto}"
+
+            filas.append({
+                "id_platillo":       pid,
+                "nombre":            nombre_plat,
+                "ingredientes":      ingredientes,
+                "alternativas":      alternativas,
+                "tecnicas_permitidas": tecnicas,
+                "porcion_base_g":    sum(g for _, g in ingredientes),
+            })
+            pid += 1
+
+    if not filas:
+        return pd.DataFrame()
 
     return pd.DataFrame(filas).set_index("id_platillo")
