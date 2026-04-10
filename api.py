@@ -38,7 +38,7 @@ async def lifespan(app: FastAPI):
                                                                                
     app_data["df_platillos_default"] = construir_platillos(df_alimentos, None)
     
-    print("✓ Datasets cargados en memoria. Servidor listo.")
+    print(" Datasets cargados en memoria. Servidor listo.")
     yield
                                     
     app_data.clear()

@@ -529,7 +529,7 @@ class MenuGeneticAlgorithm:
             poblacion = nueva_pob
 
         print(f"{'─' * 65}")
-        print(f"\n✓ Evolución completada. Mejor fitness: {mejor_fitness:.4f}")
+        print(f"\n Evolución completada. Mejor fitness: {mejor_fitness:.4f}")
         print(f"  Top 3 fitness: {[round(t[0], 4) for t in self.top3]}")
 
         return mejor_individuo, mejor_metricas, historial
