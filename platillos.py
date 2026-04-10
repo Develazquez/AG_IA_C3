@@ -1,17 +1,3 @@
-"""
-MenuGen-DIF v2: Construcción dinámica del catálogo de platillos
-
-Los platillos se generan automáticamente a partir del perfil nutricional
-de los alimentos presentes en los datasets USDA/FAO, sin depender de
-listas de ingredientes hardcodeadas.
-
-Flujo:
-  1. clasificar_alimentos()  → asigna cada alimento a una categoría funcional
-                               usando umbrales nutricionales por 100g.
-  2. construir_platillos()   → aplica PATRONES_RECETA para combinar categorías
-                               y genera hasta MAX_PLATILLOS platillos.
-"""
-
 import numpy as np
 import pandas as pd
 from typing import Dict, List, Optional, Set, Tuple
@@ -61,10 +47,7 @@ def clasificar_alimentos(df: pd.DataFrame) -> Dict[str, List[int]]:
                                                                                 
 
 def _score_completitud(row: pd.Series) -> float:
-    """
-    Score que premia alimentos con perfil nutricional más completo.
-    Penaliza NaN implícitamente y premia presencia de micronutrientes.
-    """
+
     cols = ["kcal_100g", "proteina_g", "hierro_mg", "calcio_mg", "vitA_ug", "vitC_mg"]
     presentes = sum(1 for c in cols if pd.notna(row.get(c)) and (row.get(c) or 0) > 0)
 
@@ -80,7 +63,6 @@ def _score_completitud(row: pd.Series) -> float:
 
 
 def _seleccionar_top(ids: List[int], df: pd.DataFrame, n: int) -> List[int]:
-    """Retorna los top-n IDs del grupo, ordenados por score de completitud."""
     ids_validos = [i for i in ids if i in df.index]
     if not ids_validos:
         return []
@@ -98,18 +80,7 @@ def construir_platillos(
     df_alimentos: pd.DataFrame,
     ingredientes_disponibles: Optional[Set[str]] = None,
 ) -> pd.DataFrame:
-    """
-    Genera dinámicamente el catálogo de platillos a partir del perfil
-    nutricional de los alimentos en los datasets USDA/FAO.
 
-    Args:
-        df_alimentos: DataFrame combinado USDA + FAO con columnas de nutrientes.
-        ingredientes_disponibles: Set de keywords de nombres (None = usar todos).
-
-    Returns:
-        DataFrame indexado por id_platillo con las columnas que espera el AG:
-        nombre, ingredientes, alternativas, tecnicas_permitidas, porcion_base_g.
-    """
 
                                                                                 
     if ingredientes_disponibles is not None:
