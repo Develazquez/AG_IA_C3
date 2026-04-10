@@ -1,4 +1,4 @@
-# MenuGen-DIF — Sistema de Optimización de Menús Escolares
+# MenuGen-DIF — Sistema de optimización de menús escolares
 
 ![Aesthetics](https://img.shields.io/badge/Aesthetics-Premium-blueviolet)
 ![Python](https://img.shields.io/badge/Python-3.x-blue)
@@ -26,6 +26,7 @@
 ```bash
 git clone <url-del-repositorio>
 cd Proyecto
+git checkout console-version
 ```
 
 ### 2. Configurar el entorno virtual (Recomendado)
