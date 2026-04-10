@@ -16,12 +16,12 @@ from platillos import construir_platillos
 from genetic_algorithm import MenuGeneticAlgorithm
 from charts import graficar_evolucion, graficar_dashboard_top3, graficar_descomposicion_fitness, imprimir_menu
 
-# Variable global para mantener los datasets en memoria y no recargarlos en cada petición
+                                                                                         
 app_data = {}
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Ciclo de vida de la aplicación. Se ejecuta al arrancar el servidor."""
+
     print("\nInicializando servidor... Cargando datasets reales, esto tomará unos segundos.")
     df_usda = cargar_usda(PATH_USDA_ZIP)
     df_fao = cargar_fao(PATH_FAO)
@@ -35,12 +35,12 @@ async def lifespan(app: FastAPI):
     app_data["df_reqs"] = df_reqs
     app_data["precios"] = precios
     
-    # Creamos un catálogo de platillos por defecto (con todos los ingredientes)
+                                                                               
     app_data["df_platillos_default"] = construir_platillos(df_alimentos, None)
     
     print("✓ Datasets cargados en memoria. Servidor listo.")
     yield
-    # Limpieza al apagar el servidor
+                                    
     app_data.clear()
 
 app = FastAPI(lifespan=lifespan, title="API de MenuGen-DIF v2")
@@ -53,7 +53,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Crear directorios si no existen y montarlos para que el frontend pueda acceder a las imágenes/CSVs
+                                                                                                    
 dir_base = os.path.dirname(os.path.abspath(__file__))
 dir_outputs = os.path.join(dir_base, "outputs")
 os.makedirs(os.path.join(dir_outputs, "graphs"), exist_ok=True)
@@ -62,7 +62,7 @@ os.makedirs(os.path.join(dir_outputs, "menus"), exist_ok=True)
 app.mount("/outputs", StaticFiles(directory=dir_outputs), name="outputs")
 
 
-# Estructura del JSON que el frontend debe enviar
+                                                 
 class MenuRequest(BaseModel):
     edad_min: int = 6
     edad_max: int = 9
@@ -78,7 +78,7 @@ def generar_menus(req: MenuRequest):
     df_alimentos = app_data["df_alimentos"]
     df_reqs = app_data["df_reqs"]
     
-    # Si el usuario especifica ingredientes, reconstruimos el catálogo solo para esta petición
+                                                                                              
     if req.ingredientes_disponibles is not None:
         df_platillos = construir_platillos(df_alimentos, set(req.ingredientes_disponibles))
     else:
@@ -95,19 +95,19 @@ def generar_menus(req: MenuRequest):
         generaciones=req.generaciones,
     )
     
-    # Ejecutamos el algoritmo
+                             
     mejor_individuo, mejor_metricas, historial = ag.ejecutar()
     
     dfs_menu = []
     tops_response = []
     
-    # Procesar el Top 3 y extraer información para el JSON
+                                                          
     for rank, (fit_val, ind, met) in enumerate(ag.top3):
         met["_alimentos_ref"] = df_alimentos
         df_m = imprimir_menu(ind, df_platillos, met, rank=rank + 1)
         dfs_menu.append(df_m)
         
-        # Convertimos el dataframe del menú a una lista de diccionarios para el frontend
+                                                                                        
         tops_response.append({
             "rank": rank + 1,
             "fitness": round(fit_val, 4),
@@ -117,7 +117,7 @@ def generar_menus(req: MenuRequest):
             "menu_diario": df_m.to_dict(orient="records")
         })
 
-    # Generamos los gráficos
+                            
     fig_evo = graficar_evolucion(historial, req.generaciones)
     fig_nut = graficar_dashboard_top3(ag.top3, ag.reqs_filtrados, (req.edad_min, req.edad_max))
     fig_dec = graficar_descomposicion_fitness(ag.top3)
@@ -129,12 +129,12 @@ def generar_menus(req: MenuRequest):
     path_nut = os.path.join(dir_graphs, "dashboard_nutricional_top3.png")
     path_dec = os.path.join(dir_graphs, "descomposicion_fitness.png")
     
-    # Guardamos físicamente los PNGs
+                                    
     fig_evo.savefig(path_evo, dpi=150, bbox_inches="tight", facecolor=PALETTE["bg"])
     fig_nut.savefig(path_nut, dpi=150, bbox_inches="tight", facecolor=PALETTE["bg"])
     fig_dec.savefig(path_dec, dpi=150, bbox_inches="tight", facecolor=PALETTE["bg"])
     
-    # Importante: Limpiar memoria de matplotlib en servidores para evitar fugas de RAM
+                                                                                      
     plt.close('all')
 
     menus_csv_paths = []

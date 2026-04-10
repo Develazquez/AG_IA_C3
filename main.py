@@ -6,7 +6,7 @@ warnings.filterwarnings("ignore")
 
 from constants import (
     PATH_USDA_ZIP, PATH_FAO, PATH_PROFECO, PATH_REQS,
-    LISTA_TECNICAS, GRUPOS_SUSTITUCION, PALETTE,
+    LISTA_TECNICAS, PATRONES_RECETA, PALETTE,
 )
 from loaders import (
     cargar_usda, cargar_fao, cargar_profeco,
@@ -54,9 +54,9 @@ if __name__ == "__main__":
 
     print("  → Construyendo catálogo de platillos...")
     df_platillos = construir_platillos(df_alimentos, INGREDIENTES_DISPONIBLES)
-    print(f"     {len(df_platillos)} platillos construidos")
+    print(f"     {len(df_platillos)} platillos generados dinámicamente desde los datasets")
+    print(f"     Patrones de receta activos: {len(PATRONES_RECETA)}")
     print(f"     Técnicas de preparación: {LISTA_TECNICAS}")
-    print(f"     Grupos de sustitución: {list(GRUPOS_SUSTITUCION.keys())}")
 
     print("\nDatasets listos.\n")
 

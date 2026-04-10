@@ -31,7 +31,7 @@ def graficar_evolucion(historial: Dict, generaciones: int) -> plt.Figure:
     ax.grid(True, color=PALETTE["grid"], linewidth=0.5, alpha=0.7)
     ax.legend(facecolor=PALETTE["panel"], labelcolor=PALETTE["text"])
 
-    # diversidad poblacional
+                            
     ax2 = axes[1]
     ax2.set_facecolor(PALETTE["panel"])
     ax2.plot(gens, historial["diversidad"], color=PALETTE["accent5"], lw=2)
@@ -74,7 +74,7 @@ def graficar_dashboard_top3(top3: List[Tuple], reqs_filtrados: Dict,
         rmin, rmax = reqs_filtrados[nut]
         req_mid = (rmin + rmax) / 2
 
-        # Valores de referencia
+                               
         x_positions = [0, 1]
         ax.bar(x_positions, [rmin, req_mid],
                color=[PALETTE["accent4"], PALETTE["muted"]],
@@ -82,7 +82,7 @@ def graficar_dashboard_top3(top3: List[Tuple], reqs_filtrados: Dict,
         ax.axhline(rmax, color=PALETTE["accent3"], lw=1.5, linestyle="--",
                     alpha=0.8, label="Máx NOM" if idx == 0 else "")
 
-        # barras de cada menu del top-3
+                                       
         for rank, (fit_val, ind, metricas) in enumerate(top3):
             nut_daily = metricas["nutricion_diaria"]
             consumo = float(np.mean([d[nut] for d in nut_daily]))

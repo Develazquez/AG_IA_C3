@@ -66,10 +66,10 @@ def _parse_gramos(presentacion: str) -> Optional[float]:
   
     if not isinstance(presentacion, str):
         return None
-    # Soporta g, Gr, kg, Kg, ml, Ml, L, l 
+                                          
     m = re.search(r"(\d[\d,\.]*)\s*(?:Gr|Kg|gr|kg|g\b)", presentacion, re.IGNORECASE)
     if not m:
-        # Intento con litros (densidad ≈ 1 para leche)
+                                                      
         m_l = re.search(r"(\d[\d,\.]*)\s*(?:Lt?|lt?|ml)\b", presentacion, re.IGNORECASE)
         if m_l:
             val = float(m_l.group(1).replace(",", ""))
