@@ -470,7 +470,7 @@ class MenuGeneticAlgorithm:
         elite_size = max(2, int(0.1 * self.pop_size))
 
         print(f"\n{'─' * 65}")
-        print(f"  MenuGen-DIF v2 | Pob: {self.pop_size} | Gen: {self.generaciones}")
+        print(f"  MenuGen-DIF | Pob: {self.pop_size} | Gen: {self.generaciones}")
         print(f"  Edad: {self.edad_rango} | Presupuesto: ${self.presupuesto_max:,.0f} MXN")
         print(f"  Variables: P_i (platillo) + G_i (porción) + I_i (ingrediente) + M_i (técnica)")
         print(f"{'─' * 65}")

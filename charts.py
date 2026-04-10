@@ -183,7 +183,7 @@ def imprimir_menu(individuo, df_platillos: pd.DataFrame,
     df_menu = pd.DataFrame(filas)
 
     print(f"\n{'═' * 80}")
-    print(f"  MENÚ SEMANAL #{rank} — MenuGen-DIF v2")
+    print(f"  Menu semanal #{rank} — MenuGen-DIF")
     print(f"{'═' * 80}")
     print(df_menu.to_string(index=False))
     print(f"{'═' * 80}")

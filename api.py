@@ -22,7 +22,7 @@ app_data = {}
 @asynccontextmanager
 async def lifespan(app: FastAPI):
 
-    print("\nInicializando servidor... Cargando datasets reales, esto tomará unos segundos.")
+    print("\nInicializando servidor")
     df_usda = cargar_usda(PATH_USDA_ZIP)
     df_fao = cargar_fao(PATH_FAO)
     df_alimentos = pd.concat([df_usda, df_fao], ignore_index=True)
@@ -43,7 +43,7 @@ async def lifespan(app: FastAPI):
                                     
     app_data.clear()
 
-app = FastAPI(lifespan=lifespan, title="API de MenuGen-DIF v2")
+app = FastAPI(lifespan=lifespan, title="API de MenuGen-DIF")
 
 app.add_middleware(
     CORSMiddleware,

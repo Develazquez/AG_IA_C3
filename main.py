@@ -2,7 +2,6 @@ import os
 import warnings
 import pandas as pd
 import matplotlib.pyplot as plt
-from datetime import datetime
 warnings.filterwarnings("ignore")
 
 from constants import (
@@ -27,7 +26,7 @@ if __name__ == "__main__":
     print("=" * 65)
     print("  MenuGen-DIF — Sistema de optimización de menús escolares")
     print("=" * 65)
-    print("\nCargando datasets reales")
+    print("\nCargando datasets")
 
     print("  → USDA Foundation Foods...")
     df_usda = cargar_usda(PATH_USDA_ZIP)
@@ -94,23 +93,23 @@ if __name__ == "__main__":
             else:
                 print("  Opción no válida.")
                 continue
-            print(f"   Rango de edad: {EDAD_RANGO[0]}-{EDAD_RANGO[1]} años")
+            print(f"  Rango de edad: {EDAD_RANGO[0]}-{EDAD_RANGO[1]} años")
             break
         except ValueError:
             print("  Entrada inválida. Ingrese un número entero.")
     while True:
         try:
             entrada_pres = input(
-                f"\n  Presupuesto máximo semanal en MXN (default: 3500): "
+                f"\n  Presupuesto máximo semanal en MXN (default: 2000): "
             ).strip()
             if entrada_pres == "":
-                PRESUPUESTO_MAX = 3500.0
+                PRESUPUESTO_MAX = 2000.0
             else:
                 PRESUPUESTO_MAX = float(entrada_pres)
                 if PRESUPUESTO_MAX <= 0:
                     print("  El presupuesto debe ser mayor a $0.")
                     continue
-            print(f"   Presupuesto semanal: ${PRESUPUESTO_MAX:,.2f} MXN")
+            print(f"  Presupuesto semanal: ${PRESUPUESTO_MAX:,.2f} MXN")
             break
         except ValueError:
             print("  Entrada inválida. Ingrese un número (ej: 2000 o 1500.50)")
@@ -158,9 +157,8 @@ if __name__ == "__main__":
 
     plt.show()
 
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    dir_graphs = os.path.join(os.path.dirname(os.path.abspath(__file__)), "outputs", f"run_{timestamp}", "graphs")
-    dir_menus  = os.path.join(os.path.dirname(os.path.abspath(__file__)), "outputs", f"run_{timestamp}", "menus")
+    dir_graphs = os.path.join(os.path.dirname(os.path.abspath(__file__)), "outputs", "graphs")
+    dir_menus  = os.path.join(os.path.dirname(os.path.abspath(__file__)), "outputs", "menus")
     os.makedirs(dir_graphs, exist_ok=True)
     os.makedirs(dir_menus, exist_ok=True)
 
