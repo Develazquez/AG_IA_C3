@@ -1,4 +1,4 @@
-# MenuGen-DIF — Sistema de Optimización de Menús Escolares (Version para frontend)
+# MenuGen-DIF — Sistema de optimización de menús escolares (Version para frontend)
 
 ![Aesthetics](https://img.shields.io/badge/Aesthetics-Premium-blueviolet)
 ![Python](https://img.shields.io/badge/Python-3.x-blue)
